@@ -1,14 +1,16 @@
 <template>
   <!-- 메인 홀 & 게임 세팅 -->
-  <div class="create-hall">
-    <span class="title">짜사이</span>
-
-    <!-- <Test /> -->
-    <RoomCodeCreate />
+  <div class="create-hall" @keypress.enter="btn_create">
+    <h5 class="my-5" id="code_block">
+      방 코드: <span style="font-weight: bold">{{ roomcode }}</span>
+    </h5>
+    <div class="mb-4" style="color: pink;">
+      시작할 컨텐츠를 왼쪽에서 오른쪽으로 순서대로 드래그하세요!
+    </div>
     <!-- Vue.Draggable -->
-    <div class="row">
-      <div class="col-3 offset-3">
-        <h3>Items</h3>
+    <div class="row" style="height: 15rem;">
+      <div id="box_left" class="col-3 offset-3">
+        <h3 style="color: white;">컨텐츠</h3>
         <draggable
           class="list-group"
           :list="list1"
@@ -25,9 +27,13 @@
           </div>
         </draggable>
       </div>
-
-      <div class="col-3">
-        <h3>진행순서</h3>
+      <div
+        style="display: flex; align-items: center; font-weight: bold; color: white;"
+      >
+        >
+      </div>
+      <div id="box_right" class="col-3">
+        <h3 style="color: white;">진행순서</h3>
         <draggable
           class="list-group"
           :list="list2"
@@ -48,7 +54,7 @@
 
       <!-- <rawDisplayer class="col-3" :value="list2" title="List 2" /> -->
     </div>
-    <button class="startbutton" id="" v-on:click="btn_start">시작하기</button>
+    <button class="mainbtn" id="" v-on:click="btn_create">시작하기</button>
     <!-- HelpIcon -->
     <HelpIcon />
   </div>
@@ -57,7 +63,6 @@
 <script>
 import draggable from "vuedraggable";
 import HelpIcon from "@/components/HelpIcon";
-import RoomCodeCreate from "@/components/RoomCodeCreate";
 
 import axios from "axios";
 // const SERVER_URL = process.env.VUE_APP_SERVER_URL;
@@ -67,7 +72,6 @@ export default {
   components: {
     draggable,
     HelpIcon,
-    RoomCodeCreate,
   },
   data() {
     return {
@@ -77,6 +81,7 @@ export default {
         { name: "카드", id: 3 },
       ],
       list2: [],
+      roomcode: "",
     };
   },
   methods: {
@@ -94,9 +99,9 @@ export default {
     log: function() {
       // window.console.log(evt);
     },
-    btn_start: function() {
+    btn_create: function() {
       if (this.list2.length < 1) {
-        alert("컨텐츠를 정하세요!");
+        alert("컨텐츠를 선택해주세요!");
       } else {
         // for (let i = 0; i < this.list2.length; i++) {
         //   this.$store.commit('CREATE_PROGRAMME', this.list2[i])
@@ -115,13 +120,10 @@ export default {
         if (this.list2.length > 2) {
           context.game3 = this.list2[2].id;
         }
-        console.log(this.list2);
-        console.log(context);
-        alert("하이");
         axios({
           method: "post",
-          //url: `api/room/create/`,
-          url: `http://localhost:8080/api/room/create/`,
+          url: `https://k4a205.p.ssafy.io:8080/api/room/create/`,
+          // url: `http://localhost:8080/api/room/create/`,
           // url: `${SERVER_URL}/room/create/`,
           //url: `http://localhost:8080/api/room/create/`,
           // url: `${SERVER_URL}/api/room/create/`,
@@ -132,8 +134,7 @@ export default {
             "Access-Control-Allow-Origin": "*",
           },
         })
-          .then((res) => {
-            console.log(res);
+          .then(() => {
             alert("방 생성이 완료되었습니다!");
             this.$router.push({
               name: "Room",
@@ -141,16 +142,37 @@ export default {
             });
           })
           .catch((err) => {
-            console.log(err);
-            alert("오류가 발생하였습니다. 다시 시도해주세요.");
+            alert(
+              "오류가 발생하였습니다. 다시 시도해주세요." +
+                "<br /> 에러코드" +
+                `${err}`
+            );
           });
       }
     },
+    getRoomInfo() {
+      var chars =
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+      var stringLength = 8;
+      for (var i = 0; i < stringLength; i++) {
+        var rnum = Math.floor(Math.random() * chars.length);
+        this.roomcode += chars.substring(rnum, rnum + 1);
+      }
+      // roomcode 저장하기
+      this.$store.commit("CREATE_ROOMCODE", this.roomcode);
+      return this.roomcode;
+    },
   },
-  created() {
+  beforeMount() {
     var body = document.body;
     body.style.backgroundImage =
-      "url(" + "https://wallpapercave.com/wp/wp4718598.jpg" + ")";
+      "url(" +
+      "https://wallpapermemory.com/uploads/418/adventure-time-wallpaper-hd-1920x1080-333459.jpg" +
+      ")";
+
+    // 새로고침 감지
+    // window.onbeforeunload
+    this.getRoomInfo();
   },
 };
 </script>
@@ -170,14 +192,19 @@ body {
   /* overflow: hidden; */
 }
 
+#code_block {
+  cursor: default;
+  // border: 4px solid white;
+  background-color: rgba(0, 0, 0, 0);
+  // background-color: pink;
+  color: black;
+  text-decoration: underline;
+  // outline-color: white;
+}
+
 .create-hall {
   margin: 0;
   height: 100%;
-}
-
-.title {
-  font-size: 80px;
-  visibility: hidden;
 }
 
 .startbutton {
@@ -220,14 +247,10 @@ body {
 }
 .list-group-item {
   cursor: move;
-  //
-  border: 4px solid pink;
-  background-color: rgba(
-    255,
-    255,
-    255,
-    0.5
-  ); // opacity를 쓰면 글자까지 투명해진다!
+  // border: 4px solid pink;
+  background-color: pink;
+  background: transparent;
+  // opacity를 쓰면 글자까지 투명해진다!
 }
 .list-group-item i {
   cursor: pointer;

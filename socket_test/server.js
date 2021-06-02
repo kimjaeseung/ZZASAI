@@ -26,7 +26,12 @@ const Userlist_boolean = class {
     this.userlist_boolean = userlist_boolean;
   }
   str() {
-    console.log(this.roomcode, this.username, this.userlist, this.userlist_boolean);
+    console.log(
+      this.roomcode,
+      this.username,
+      this.userlist,
+      this.userlist_boolean
+    );
   }
 };
 
@@ -151,42 +156,53 @@ io.on("connection", function (socket) {
   userlist_boolean = new Array();
   socket.on("mbti", function (roomcode, username, userlist, mbtivalue) {
     const index = userlist.indexOf(username);
-        if (index !== -1) {
-          console.log(userlist);
-          console.log(username);
-          console.log(mbtivalue);
-          if(userlist_boolean.length < userlist.length){
-            for(var i=0; i<userlist.length; i++) {
-              userlist_boolean.push(false);
-            }
-          }
-          userlist_boolean[index] = mbtivalue;
-          console.log(userlist_boolean);
+    if (index !== -1) {
+      console.log(userlist);
+      console.log(username);
+      console.log(mbtivalue);
+      if (userlist_boolean.length < userlist.length) {
+        for (var i = 0; i < userlist.length; i++) {
+          userlist_boolean.push(false);
         }
-    userboolean = new Userlist_boolean(roomcode, username, userlist, userlist_boolean);
+      }
+      userlist_boolean[index] = mbtivalue;
+      console.log(userlist_boolean);
+    }
+    userboolean = new Userlist_boolean(
+      roomcode,
+      username,
+      userlist,
+      userlist_boolean
+    );
     io.emit("userboolean", userboolean);
   });
   socket.on("mbti2", function (roomcode, username, userlist, mbtivalue) {
     const index = userlist.indexOf(username);
-        if (index !== -1) {
-          console.log(roomcode);
-          console.log(userlist);
-          console.log(username);
-          console.log(mbtivalue);
-          userboolean.userlist_boolean[index] = mbtivalue;
-          console.log(userlist_boolean);
-        }
+    if (index !== -1) {
+      console.log(roomcode);
+      console.log(userlist);
+      console.log(username);
+      console.log(mbtivalue);
+      userboolean.userlist_boolean[index] = mbtivalue;
+      console.log(userlist_boolean);
+    }
     io.emit("userboolean", userboolean);
-    if(!userboolean.userlist_boolean.includes(false))
-    {
+    if (!userboolean.userlist_boolean.includes(false)) {
       console.log("false없음 !! 모두 mbti 완료 !");
       io.emit("mbtifinish", userboolean);
     }
   });
-  
+
+  // select team
+  // name: 유저 이름, team: 팀 이름, currentpeople: 현재 사람 수
+  socket.on("select team", function (teams) {
+    if (user == null) return;
+    io.to(user.code).emit("select team", teams);
+  });
+
   /*card function*/
-  socket.on("cardselect",function(cardno,target_id, targetname){
-    io.emit("cardselected",cardno,target_id, targetname);
+  socket.on("cardselect",function(cardno){
+    io.emit("cardselected",cardno);
   }),
 
   socket.on("firstinit",function(cardlist,backgroundlist){

@@ -5,6 +5,7 @@
     </Test>
     <div class="main">
       <!-- 메인. 여태 작성한 코드들 component화 해서 넣기 -->
+      <Hall />
     </div>
     <div class="right">
       <State class="state">
@@ -20,6 +21,8 @@
 <script>
 import io from "socket.io-client";
 
+import Hall from "@/views/Hall";
+
 import Test from "@/views/Test"; //이름 변경 필요할 듯
 import State from "@/components/State";
 import Chat from "@/components/Chat";
@@ -32,6 +35,7 @@ export default {
     Test,
     State,
     Chat,
+    Hall,
   },
   data() {
     return {
@@ -52,8 +56,17 @@ export default {
         "info",
         this.$store.state.userinfo.username,
         this.roomcode,
-        this.adminFlag != 0 ? true : false
+        this.$store.state.adminflag != 0 ? true : false
       );
+    });
+
+    this.socket.on("move page", (teams) => {
+      this.$store.state.teams = teams;
+      // console.log("teams: " + teams);
+      this.$router.push({
+        name: "SelectTeam",
+        params: { roomcode: this.$store.state.roomcode },
+      });
     });
   },
   methods: {},

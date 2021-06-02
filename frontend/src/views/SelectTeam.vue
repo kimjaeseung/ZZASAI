@@ -31,19 +31,14 @@
       선택한 팀: <strong>{{ selected }}</strong>
     </div>
 
-    <!-- <input type="radio" name="team" /> {{ team.teamname }} -->
-
-    <!-- <b-badge pill variant="warning"> 2 / {{ teams.teampeople }} </b-badge> -->
-    <!-- </div> -->
     <button @click="selectTeam" v-if="this.btnStatus">
       팀 선택 완료
     </button>
-    <!-- </ul> -->
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+// import { mapState } from "vuex";
 
 export default {
   name: "SelectTeam",
@@ -53,14 +48,25 @@ export default {
       totalPerson: 30,
       btnStatus: true,
       selected: "",
+      socket: this.$store.state.socket,
+      teams: this.$store.state.teams,
     };
   },
-  created () {
-    var body = document.body
-    body.style.backgroundImage = 'url(' + 'https://wallpapercave.com/wp/wp5042415.jpg' + ')';
+  created() {
+    var body = document.body;
+    body.style.backgroundImage =
+      "url(" + "https://wallpapercave.com/wp/wp5042415.jpg" + ")";
   },
   mounted() {
-    console.log("총 인원 수 :" + this.totalPerson);
+    // console.log("총 인원 수 :" + this.totalPerson);
+
+    // socket on 함수 mounted에 배치
+    this.socket.on("select team", (teams) => {
+      this.$store.state.teams = teams;
+      console.log(teams);
+      // this.selectTeam(teams);
+    });
+
     // console.log(this.$store.state.teams);
   },
   methods: {
@@ -82,11 +88,28 @@ export default {
       ] = this.$store.state.userinfo.username;
       this.btnStatus = false;
       // console.log(this.$store.state.teams);
+
+      this.socket.emit("select team", this.$store.state.teams);
+
+      // 이어그리기로 이동
+      // this.$router.push({
+      //     name: "SelectTeam",
+      //     params: { roomcode: this.$store.state.roomcode },
+      //   });
+    },
+    checkBtnStatus() {
+      for (var i = 0; i < this.$store.state.teamnumber; i++) {
+        var currentpeople = this.$store.state.teams[i].currentpeople;
+        var totalpeople = this.$store.state.teams[i].totalpeople;
+        if (currentpeople === totalpeople) {
+          this.$store.state.teams[i].disabled = true;
+        }
+      }
     },
   },
-  computed: {
-    ...mapState(["teams", "userlist"]),
-  },
+  // computed: {
+  //   ...mapState(["teams", "userlist"]),
+  // },
 };
 </script>
 

@@ -17,11 +17,11 @@
         </div>
     </span>
     <div class="mainframe">
-      <input class="maininput" v-model="roomcode" placeholder="입장코드를 입력하세요" @keyup.enter="toUserName" autofocus>      
+      <input class="maininput" v-model="roomcode" placeholder="입장코드를 입력하세요" @keyup.enter="toUserName" v-focus>      
     </div>
     <div class="mainbuttons">
-      <button class = "mainbutton" @click="toHostName">방만들기</button>
-      <button v-if="roomcode_input" class = "mainbutton"  v-show="enter_room" @click="toUserName">입장하기</button>      
+      <button class = "mainbtn" @click="toHostName">방만들기</button>
+      <button v-if="roomcode_input" class = "mainbtn"  v-show="enter_room" @click="toUserName">입장하기</button>      
     </div>
   </div>
 </template>
@@ -41,6 +41,13 @@ export default {
       enter_show : false,
       userName: ''
     }
+  },
+  directives: {
+    focus: {
+      inserted: function (el) {
+        el.focus()
+      },
+    },
   },
   computed: {
     roomcode_input: function () {
@@ -66,12 +73,15 @@ export default {
   },
   created () {
     var body = document.body
+    // body.background = 'url(' + '../assets/bgs/bg-pattern.png' + ')';
+    // body.background = 'linear-gradient(to left,#7b4397,#dc2430)'
     body.style.backgroundImage = 'url(' + 'https://wallpapermemory.com/uploads/418/adventure-time-wallpaper-hd-1920x1080-333459.jpg' + ')';
   },
 }
 </script>
 
 <style scoped>
+
 .mainfont {
   
   cursor: pointer;
@@ -95,36 +105,5 @@ export default {
   margin-top: 3%;
 }
 
-.mainbuttons{
-  margin-top:25px;
-}
 
-.mainbutton{
-  border: 4px solid white;
-  background-color : rgba(0,0,0,0);
-  padding:5px;
-  padding-left:10px;
-  padding-right:10px;
-  font-size:20px;
-  margin-left: 8px;
-  margin-right: 8px;
-}
-
-.mainbutton:hover{
-  border : 4px solid pink;
-  background-color:pink;
-}
-
-.maininput{
-  border : 3px solid pink;
-  padding: 9px;
-  padding-right: 50px;
-  padding-left: 50px;
-  text-align: center;
-  font-size: 20px;
-}
-
-.maininput:focus{
-  border : 3px solid blue;
-}
 </style>

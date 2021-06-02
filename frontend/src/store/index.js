@@ -21,6 +21,7 @@ export default new Vuex.Store({
     roomcode: "",
     // 방장이 선택한 나누려는 팀 수
     teamnumber: 0,
+    timer: 0,
     //teams: 팀 정보
     // text: n팀 , currentpeople: 현재 해당 팀 선택한 사람, teampeople: 해당 팀에 분배된 사람 수, disabled: 버튼 비활성화, score: 점수
     teams: [

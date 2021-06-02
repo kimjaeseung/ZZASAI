@@ -28,7 +28,7 @@ import Exam from "@/components/hall/Exam";
 import RoomCode from "@/components/RoomCode";
 import Test from "@/views/Test";
 import axios from "axios";
-import io from "socket.io-client";
+// import io from "socket.io-client";
 
 // const SERVER_URL = process.env.VUE_APP_SERVER_URL;
 
@@ -44,7 +44,7 @@ export default {
   },
   data() {
     return {
-      socket: io("localhost:3000"),
+      socket: this.$store.state.socket,
       order_mark: "",
       roomcode: this.$route.params.roomcode,
       room_data: {},
@@ -56,43 +56,37 @@ export default {
       "url(" + "https://wallpapercave.com/wp/wp6365486.png" + ")";
   },
   mounted() {
-    this.$store.state.socket = this.socket;
-
-    this.socket.on("connect", () => {
-      console.log(this.socket.id);
-      this.socket.emit(
-        "info",
-        this.$store.state.userinfo.username,
-        this.roomcode,
-        this.adminFlag != 0 ? true : false
-      );
-    });
+    // this.$store.state.socket = this.socket;
+    // this.socket.on("connect", () => {
+    //   console.log(this.socket.id);
+    //   this.socket.emit(
+    //     "info",
+    //     this.$store.state.userinfo.username,
+    //     this.roomcode,
+    //     this.adminFlag != 0 ? true : false
+    //   );
+    // });
   },
   methods: {
     getRoomData: function() {
       axios({
         method: "get",
-        // url: `api/room/info/?roomcode=${this.roomcode}`,
+        url: `https://k4a205.p.ssafy.io:8080/api/room/info/?roomcode=${this.roomcode}`,
         // url: `http://localhost:8080/api/room/info/?roomcode=${this.roomcode}`,
-        //url: `api/room/info/?roomcode=${this.roomcode}`,
-        url: `http://localhost:8080/api/room/info/?roomcode=${this.roomcode}`,
         // url: `${SERVER_URL}/api/room/info/?roomcode=${this.roomcode}`,
         headers: {
           "Access-Control-Allow-Origin": "*",
         },
       })
         .then((res) => {
-          console.log(res.data);
           this.room_data = res.data;
-          console.log(this.room_data);
           this.order_mark =
             String(this.room_data.game1) +
             String(this.room_data.game2) +
             String(this.room_data.game3);
         })
         .catch((err) => {
-          console.log(err);
-          alert("데이터를 가지고 오지 못했습니다ㅜㅜ");
+          alert("데이터를 가지고 오지 못했습니다ㅜㅜ <br/>" + `${err}`);
         });
     },
   },
@@ -139,6 +133,9 @@ body {
   border: 4px solid white;
   margin: 0 auto;
   max-width: 500px;
+
+  background: white;
+  /* opacity: 0.5; */
 }
 
 .hall-card:hover .hall-card-inner {

@@ -1,8 +1,7 @@
 <template>
-  <div class="grid-wrapper">
+  <div class="catchmind">
     <!-- <timer></timer> -->
     <!--1st row-->
-    <div class="rtc" id="left-rtc"></div>
     <div class="canvas-wrapper">
       <div class="answer" v-if="turnToDraw">{{ answer }}</div>
       <div class="answer" v-else>
@@ -16,7 +15,6 @@
         id="canvas"
       ></canvas>
     </div>
-    <div class="rtc" id="right-rtc"></div>
 
     <!--2nd row-->
     <div class="game-support" v-if="turnToDraw">
@@ -77,17 +75,12 @@
         </div>
       </div>
     </div>
-
-    <!--채팅 위치 -> 메인 페이지로 빼는게 나을 듯 -->
-    <div v-if="turnToDraw == false" class="game-support">
-      <input type="text" v-model="text" @keyup.enter="typeMessage" />
-    </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
-const SERVER_URL = process.env.VUE_APP_SERVER_URL;
+// const SERVER_URL = process.env.VUE_APP_SERVER_URL;
 
 // import Timer from "@/components/Timer";
 
@@ -100,7 +93,7 @@ export default {
       canvas: null,
       ctx: null,
       canvasHeight: window.innerHeight * 0.5,
-      canvasWidth: window.innerWidth * 0.4, //width 바꾸면 grid 비율도 같이 바꿔줘야 함. 고정값으로 해야할듯..
+      canvasWidth: window.innerWidth * 0.4,
       colors: [
         "black",
         "red",
@@ -118,7 +111,7 @@ export default {
       teamnumber: this.$store.state.teamnumber,
       teams: this.$store.state.teams,
       // turnToDraw: this.userinfo.team == this.teams[0].text,
-      turnToDraw: false, //user의 team 정하는 코드 완성되면 윗줄 코드로 바꾸기
+      turnToDraw: true, //user의 team 정하는 코드 완성되면 윗줄 코드로 바꾸기
       currentTurn: 0, //team number of current turn
 
       // 1) 서버와 연결
@@ -144,9 +137,7 @@ export default {
     this.ctx.fillStyle = "white";
     this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
-    // this.$store.state.socket = this.socket;
     console.log(this.socket);
-    // console.log(this.$store.state.socket);
 
     //문제 받아오기
     if (this.isAdmin) {
@@ -155,16 +146,6 @@ export default {
     //타이머 시작
 
     // 3-1) ctx 관련 정보 수신
-    this.socket.on("connect", () => {
-      console.log(this.socket.id);
-      this.socket.emit(
-        "info",
-        this.nickname,
-        this.roomCode,
-        this.adminFlag != 0 ? true : false
-      );
-    });
-
     this.socket.on("duplicated code", () => {
       console.log("duplicated code");
     });
@@ -181,17 +162,15 @@ export default {
       console.log("changed user list: ", this.users);
     });
 
-    /* chatting */
-    this.socket.on("chat", (name, msg) => {
-      console.log(name, msg);
-    });
-
     /* answer setting */
+    this.socket.on("chat", (user, msg) => {
+      console.log(user, msg);
+      if (msg == this.answer) {
+        this.answerMessage(user);
+      }
+    });
     this.socket.on("answer", (answer) => {
       this.answer = answer; //answer 받아오기
-    });
-    this.socket.on("correct answer", (user) => {
-      this.answerMessage(user);
     });
 
     /* painting */
@@ -210,9 +189,9 @@ export default {
     getAnswer() {
       axios({
         method: "get",
-        // url: `api/room/info/?roomcode=${this.roomcode}`,
+        url: `api/room/info/?roomcode=${this.roomcode}`,
         // url: `http://localhost:8080/api/room/info/?roomcode=${this.roomcode}`,
-        url: `${SERVER_URL}/api/catchmind/answer`,
+        // url: `${SERVER_URL}/api/catchmind/answer`,
         headers: {
           "Access-Control-Allow-Origin": "*",
         },
@@ -224,17 +203,6 @@ export default {
         .catch((err) => {
           console.log(err);
         });
-    },
-
-    /* to game play - chatting */
-    typeMessage() {
-      //text input for chatting - on keyup callback func
-      this.socket.emit("chat", this.userinfo.username, this.text);
-      if (this.text == this.answer) {
-        //정답이면
-        this.socket.emit("correct answer", this.userinfo);
-      }
-      this.text = "";
     },
     answerMessage(user) {
       //get user's team number
@@ -340,23 +308,7 @@ export default {
 </script>
 
 <style scoped>
-.grid-wrapper {
-  display: grid;
-  grid-template-columns: 30% 40% 30%;
-  grid-template-areas:
-    "left canvas right"
-    "left temp right";
-}
-.rtc {
-}
-.rtc#left-rtc {
-  grid-area: left;
-}
-.rtc#right-rtc {
-  grid-area: right;
-}
 .canvas-wrapper {
-  grid-area: canvas;
 }
 .answer {
   position: absolute;
@@ -367,9 +319,6 @@ export default {
   border: 3px solid black;
   height: 100%;
   width: 100%;
-}
-.game-support {
-  grid-area: temp;
 }
 .game-support > div {
   margin: 1px;

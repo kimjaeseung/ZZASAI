@@ -14,8 +14,7 @@
       <br>그 보물은 바로 여러분의 우정입니다.
       </h2>
     </div>
-    <br>
-    <b-button @click="endRoom">종료하기</b-button>
+    <button class="mainbtn" @click="endRoom">종료하기</button>
   </div>
 </template>
 
@@ -89,7 +88,7 @@ body {
   opacity: 0.5;
   margin-right: 25%;
   margin-left: 25%;
-  padding: 10% 0;
+  padding: 5% 0;
   text-align: center;
 }
 </style>

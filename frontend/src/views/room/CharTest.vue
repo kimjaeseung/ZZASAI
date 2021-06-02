@@ -39,11 +39,16 @@ export default {
   methods: {
     next() {
       this.$router.push('/char-test2');
+    },
+    sendInfo () {
+      this.$store.state.socket.emit("mbti", this.$store.state.roomcode, this.$store.state.username, 
+      this.$store.state.userlist, false);
+      this.$router.push('/char-test2');
     }
   },
   created () {
     var body = document.body
-    body.style.backgroundImage = 'url(' + 'https://wallpapercave.com/wp/wp6365737.jpg' + ')';
+    body.style.backgroundImage = 'url(' + 'https://wallpapercave.com/wp/wp6365505.png' + ')';
 
     this.$store.state.socket.emit("mbti", this.$store.state.roomcode, this.$store.state.userinfo.username, 
     this.$store.state.userlist, false);

@@ -106,9 +106,10 @@ const routes = [
     props: true,
   },
   {
-    path: "/select-team",
+    path: "/:roomcode/select-team",
     name: "SelectTeam",
     component: SelectTeam,
+    props: true,
   },
   {
     path: "/loading",

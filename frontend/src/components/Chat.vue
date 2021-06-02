@@ -1,8 +1,6 @@
 <template>
   <div>
-    <div v-for="(message, i) in messages" :key="i">
-      {{ message.name }}: {{ message.text }}
-    </div>
+    <textarea name="chatLog" id="chatLog" readonly></textarea>
     <div>
       <input type="text" v-model="text" @keyup.enter="typeMessage" />
     </div>
@@ -18,29 +16,33 @@ export default {
       socket: this.$store.state.socket,
       userinfo: this.$store.state.userinfo,
       text: "",
-      messages: [],
     };
   },
   mounted() {
     console.log("Chat: ", this.socket);
 
     /* chatting */
-    this.socket.on("chat", (name, msg) => {
+    this.socket.on("chat", (user, msg) => {
       // console.log(name, msg);
-      this.messages.push({ name: name, text: msg });
-      // console.log(this.messages);
+      var chatLog = document.getElementById("chatLog");
+      chatLog.append(user.username + ": " + msg + "\n");
+      chatLog.scrollTop = chatLog.scrollHeight;
     });
   },
   methods: {
     /* to game play - chatting */
     typeMessage() {
-      //text input for chatting - on keyup callback func
-      console.log(this.userinfo.username, this.text);
-      this.socket.emit("chat", this.userinfo.username, this.text);
+      //text input for chatting - on keyup callback func\
+      this.socket.emit("chat", this.userinfo, this.text);
       this.text = "";
     },
   },
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+#chatLog {
+  width: 50%;
+  height: 200px;
+}
+</style>
