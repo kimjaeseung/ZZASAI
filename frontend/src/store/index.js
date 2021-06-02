@@ -6,13 +6,14 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    programme: [],
+    // list
+    programme: "",
     //현재 진행중인 컨텐츠. programme[]를 가리키는 인덱스
     pidx: 0,
     userlist: [],
     userinfo: {
       username: "",
-      team: "",
+      team: 0,
       score: 0,
     },
     userlist_boolean: [],
@@ -21,6 +22,7 @@ export default new Vuex.Store({
     roomcode: "",
     // 방장이 선택한 나누려는 팀 수
     teamnumber: 0,
+    timer: 0,
     //teams: 팀 정보
     // text: n팀 , currentpeople: 현재 해당 팀 선택한 사람, teampeople: 해당 팀에 분배된 사람 수, disabled: 버튼 비활성화, score: 점수
     teams: [
@@ -38,10 +40,11 @@ export default new Vuex.Store({
     t: 0,
     i: 0,
     socket: null,
+    answer: "",
   },
   mutations: {
     CREATE_PROGRAMME: function(state, item) {
-      state.programme.push(item);
+      state.programme = item;
     },
     CREATE_USERNAME: function(state, name) {
       // state.username = name;
@@ -94,6 +97,12 @@ export default new Vuex.Store({
     },
     PUSH_USERLIST_BOOLEAN: function(state, bool) {
       state.userlist_boolean.push(bool);
+    },
+    SET_PIDX: function(state, pidx) {
+      state.pidx = pidx;
+    },
+    CREATE_TEAM: function(state, payload) {
+      state.teams = payload;
     },
   },
   actions: {},

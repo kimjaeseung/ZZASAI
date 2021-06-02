@@ -1,64 +1,67 @@
 <template>
   <!-- 캐릭터 테스트 -->
   <div id="char-test">
-    <h1> 성격유형검사 ( 동물편 ) </h1>
-    <!--<img src="~@/assets/bgs/mbti.png" alt="mbti image" />-->
-    <div class="py-1 my-4"></div>
-      <div class="row">
-        <div class="col offset-md-2">
-        <img src="~@/assets/mbti/animal.png" alt="mbti image"/>
-        </div>
-        <div class="col-7">
-          <br><br><br>
-        <h1> 신뢰 기반 검사 </h1>
-        <br>
-        <h4> 해당 검사는 신뢰도가 </h4>
-        <h4> 아주 높습니다 </h4>
-        <h4> 신뢰도 9.99% </h4>
-        <br>
-        <button type="button" class="btn btn-dark btn-lg" v-on:click="sendInfo">검사 시작</button>
-        </div>
-      </div>
-    </div>
+    <CharTest1 v-if="idx == 1" v-on:next="next" />
+    <CharTest2 v-if="idx == 2" v-on:next="next" />
+    <CharTest3 v-if="idx == 3" v-on:next="next" />
+    <CharTest4 v-if="idx == 4" v-on:next="next" />
+    <CharTest5 v-if="idx == 5" v-on:next="next" />
+    <CharTest6 v-if="idx == 6" v-on:next="next" />
+    <CharTest7 v-if="idx == 7" v-on:next="next" />
+  </div>
 </template>
 
 <script>
+import CharTest1 from "@/views/room/CharTest1";
+import CharTest2 from "@/views/room/CharTest2";
+import CharTest3 from "@/views/room/CharTest3";
+import CharTest4 from "@/views/room/CharTest4";
+import CharTest5 from "@/views/room/CharTest5";
+import CharTest6 from "@/views/room/CharTest6";
+import CharTest7 from "@/views/room/CharTest7";
+
 export default {
-  name: 'CharTest',
-  data(){
-    return{
-      socket: this.$store.state.socket,
+  name: "CharTest",
+  components: {
+    CharTest1,
+    CharTest2,
+    CharTest3,
+    CharTest4,
+    CharTest5,
+    CharTest6,
+    CharTest7,
+  },
+  data() {
+    return {
+      idx: 1,
     };
   },
   mounted() {
-    this.socket.on("userboolean", (userboolean) => {
+    var socket = this.$store.state.socket;
+    socket.on("userboolean", (userboolean) => {
       this.$store.state.userlist_boolean = userboolean.userlist_boolean;
       console.log("changed user list: ", this.$store.state.userlist_boolean);
     });
   },
   methods: {
     next() {
-      this.$router.push('/char-test2');
-    }
+      this.idx++;
+    },
   },
-  created () {
-    var body = document.body
-    body.style.backgroundImage = 'url(' + 'https://wallpapercave.com/wp/wp6365737.jpg' + ')';
-
-    this.$store.state.socket.emit("mbti", this.$store.state.roomcode, this.$store.state.userinfo.username, 
-    this.$store.state.userlist, false);
-    this.$router.push('/char-test2');
-
-    console.log('aslkahsdlh')
-  },
-}
-
+  created() {},
+};
 </script>
 
 <style scoped>
-.col img{
-position: absolute; top:0; left: 0;
-width: 140%;
-height: 130%;
+#char-test {
+  color: white;
+}
+
+.col img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 140%;
+  height: 130%;
 }
 </style>

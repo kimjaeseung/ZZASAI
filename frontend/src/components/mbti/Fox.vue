@@ -1,32 +1,30 @@
 <template>
   <!-- 캐릭터 테스트 -->
   <div>
-    <h1>성격분류가 완료되었습니다.</h1>
-    <div class="py-3 my-1"></div>
-    <div class="row">
-      <div class="col-4 offset-md-2">
-        <img src="~@/assets/mbti/fox.png" alt="mbti image" />
+    <h2 id="char-test-title">성격분류가 완료되었습니다.</h2>
+    <div class="row pt-3">
+      <div class="col">
+        <img style="width: 100%;" src="~@/assets/mbti/fox.png" alt="mbti image" />
       </div>
-      <div class="col-5">
-        <h2>
+      <div class="col my-5 mr-3" style="color: black;">
+        <h5>
           <br />여우는 우리에게 잘 알려진 대로 다재다능하고 호기심이 많다.
-        </h2>
+        </h5>
         <br />
-        <h2>
+        <h5>
           관심사가 다양하고 일을 잘 벌린다는 점에서 ENTP와 여우는 많이 닮아있다.
-        </h2>
+        </h5>
         <br />
-        <h2>
+        <h5>
           의심이 많아서 사람들 말에 ‘정말일까’라며 의문을 갖는다는 점 또한
           그렇다.
-        </h2>
-        <br />
-        <button type="button" class="btn btn-dark btn-lg" v-on:click="sendInfo">
+        </h5>
+     </div>
+    </div>
+        <button type="button" class="char-select-btn" v-on:click="sendInfo">
           Next
         </button>
-      </div>
-    </div>
-
+ 
     <!--<button type="button" class="btn btn-dark btn-lg" v-on:click="next">Next</button>-->
   </div>
 </template>
@@ -48,7 +46,7 @@ export default {
     next() {
       this.updateArray(this.$store.state.userlist, this.$store.state.userinfo.username)
       console.log(this.$store.state.userlist_boolean);
-      this.$router.push("/loading");
+      this.$router.push({name: 'Loading', params: {roomcode: this.$store.state.roomcode}})
     },
     updateArray(myArray, oldValue){
         const index = myArray.indexOf(oldValue);
@@ -60,7 +58,7 @@ export default {
       this.$store.state.socket.emit("mbti2", this.$store.state.roomcode, this.$store.state.userinfo.username, 
       this.$store.state.userlist,
       this.$store.state.m*1000+this.$store.state.b*100+this.$store.state.t*10+this.$store.state.i);
-      this.$router.push('/loading'); 
+      this.$router.push({name: 'Loading', params: {roomcode: this.$store.state.roomcode}})
     },
   },
 };
