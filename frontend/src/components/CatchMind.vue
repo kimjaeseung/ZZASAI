@@ -1,12 +1,12 @@
 <template>
-  <div class="grid-wrapper">
-    <!-- <timer></timer> -->
+  <div class="catchmind">
     <!--1st row-->
-    <div class="rtc" id="left-rtc"></div>
     <div class="canvas-wrapper">
-      <div class="answer" v-if="turnToDraw">{{ answer }}</div>
+      <div class="answer" v-if="this.currentTeam == this.userinfo.team - 1">
+        {{ $store.state.answer }}
+      </div>
       <div class="answer" v-else>
-        <span v-for="i in answer.length" :key="i">_</span>
+        <span v-for="i in $store.state.answer.length" :key="i">_</span>
       </div>
       <canvas
         @mousedown="startPainting"
@@ -16,7 +16,6 @@
         id="canvas"
       ></canvas>
     </div>
-    <div class="rtc" id="right-rtc"></div>
 
     <!--2nd row-->
     <div class="game-support" v-if="turnToDraw">
@@ -31,18 +30,18 @@
       <div class="size-picker">
         <!--size handler 3type-->
         <div @click="strokeSizeHandler(1)">
-          <div style="width:3px; height:3px;"></div>
+          <div style="width: 3px; height: 3px"></div>
         </div>
         <div @click="strokeSizeHandler(8)">
-          <div style="width:9px; height:9px;"></div>
+          <div style="width: 9px; height: 9px"></div>
         </div>
         <div @click="strokeSizeHandler(15)">
-          <div style="width:15px; height:15px;"></div>
+          <div style="width: 15px; height: 15px"></div>
         </div>
       </div>
       <!--모두 지우기-->
       <div class="eraser">
-        <div class="clearAll" @click="clearAll" style="float:right;">
+        <div class="clearAll" @click="clearAll" style="float: right">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -61,7 +60,7 @@
           </svg>
         </div>
         <!--지우개 버튼-->
-        <div @click="strokeColorHandler('white')" style="float:right;">
+        <div @click="strokeColorHandler('white')" style="float: right">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -77,30 +76,25 @@
         </div>
       </div>
     </div>
-
-    <!--채팅 위치 -> 메인 페이지로 빼는게 나을 듯 -->
-    <div v-if="turnToDraw == false" class="game-support">
-      <input type="text" v-model="text" @keyup.enter="typeMessage" />
-    </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
-const SERVER_URL = process.env.VUE_APP_SERVER_URL;
+// const SERVER_URL = process.env.VUE_APP_SERVER_URL;
 
 // import Timer from "@/components/Timer";
 
 export default {
   name: "CatchMind",
-  components: {},
+  // components: { Timer },
   data() {
     return {
       painting: false,
       canvas: null,
       ctx: null,
       canvasHeight: window.innerHeight * 0.5,
-      canvasWidth: window.innerWidth * 0.4, //width 바꾸면 grid 비율도 같이 바꿔줘야 함. 고정값으로 해야할듯..
+      canvasWidth: window.innerWidth * 0.4,
       colors: [
         "black",
         "red",
@@ -117,10 +111,10 @@ export default {
       users: [], //all user list
       teamnumber: this.$store.state.teamnumber,
       teams: this.$store.state.teams,
-      // turnToDraw: this.userinfo.team == this.teams[0].text,
-      turnToDraw: false, //user의 team 정하는 코드 완성되면 윗줄 코드로 바꾸기
-      currentTurn: 0, //team number of current turn
-
+      turnToDraw: false, // able/unable to draw
+      currentUser: 0, //user index of current turn
+      currentTeam: 0, //team index of current turn
+      useridx: 0,
       // 1) 서버와 연결
       // socket: io("localhost:3000"), //url:port
       socket: this.$store.state.socket,
@@ -144,9 +138,7 @@ export default {
     this.ctx.fillStyle = "white";
     this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
-    // this.$store.state.socket = this.socket;
     console.log(this.socket);
-    // console.log(this.$store.state.socket);
 
     //문제 받아오기
     if (this.isAdmin) {
@@ -155,16 +147,6 @@ export default {
     //타이머 시작
 
     // 3-1) ctx 관련 정보 수신
-    this.socket.on("connect", () => {
-      console.log(this.socket.id);
-      this.socket.emit(
-        "info",
-        this.nickname,
-        this.roomCode,
-        this.adminFlag != 0 ? true : false
-      );
-    });
-
     this.socket.on("duplicated code", () => {
       console.log("duplicated code");
     });
@@ -181,17 +163,44 @@ export default {
       console.log("changed user list: ", this.users);
     });
 
-    /* chatting */
-    this.socket.on("chat", (name, msg) => {
-      console.log(name, msg);
+    var jl = this.teams[this.userinfo.team - 1].joinlist;
+    for (var i in jl) {
+      if (jl[i].username == this.userinfo.username) {
+        this.useridx = i;
+      }
+    }
+    /* game syncing */
+    this.socket.on("new game", () => {
+      if (this.currentTeam == this.userinfo.team - 1) {
+        //자기 팀이 그림 그릴 차례
+        if (this.currentUser == this.useridx) {
+          this.turnToDraw = true;
+        }
+      } else {
+        this.turnToDraw = false;
+      }
+    });
+    this.socket.on("start game", (totalTime) => {
+      console.log(totalTime); //total time limit of team
+      //timer starts
+    });
+    this.socket.on("timer", (user, time) => {
+      console.log(user, time); //time limit of each player
+      this.currentUser++;
+      //timer starts with time
+    });
+    this.socket.on("end game", () => {
+      console.log("end game"); //game end. nobody got the answer
+      //animation
     });
 
     /* answer setting */
     this.socket.on("answer", (answer) => {
-      this.answer = answer; //answer 받아오기
+      this.$store.state.answer = answer; //answer 받아오기
     });
-    this.socket.on("correct answer", (user) => {
-      this.answerMessage(user);
+    this.socket.on("correct answer", (userinfo) => {
+      // console.log(userinfo);
+      this.answerMessage(userinfo);
     });
 
     /* painting */
@@ -210,9 +219,9 @@ export default {
     getAnswer() {
       axios({
         method: "get",
-        // url: `api/room/info/?roomcode=${this.roomcode}`,
-        // url: `http://localhost:8080/api/room/info/?roomcode=${this.roomcode}`,
-        url: `${SERVER_URL}/api/catchmind/answer`,
+        url: `https://k4a205.p.ssafy.io:8080/api/catchmind/answer`,
+        // url: `http://localhost:8080/api/catchmind/answer`,
+        // url: `${SERVER_URL}/api/catchmind/answer`,
         headers: {
           "Access-Control-Allow-Origin": "*",
         },
@@ -225,48 +234,36 @@ export default {
           console.log(err);
         });
     },
-
-    /* to game play - chatting */
-    typeMessage() {
-      //text input for chatting - on keyup callback func
-      this.socket.emit("chat", this.userinfo.username, this.text);
-      if (this.text == this.answer) {
-        //정답이면
-        this.socket.emit("correct answer", this.userinfo);
-      }
-      this.text = "";
-    },
     answerMessage(user) {
-      //get user's team number
-      var i = 0;
-      for (var team of this.teams) {
-        if (team.text == this.user.team) break;
-        i++;
-      }
-
       //1.정답 애니메이션
-      console.log(user);
+      var teamidx = user.team - 1; //team index of user
+      console.log(this.teams);
       //2.점수 추가
-      this.userinfo.score += 1;
-      this.teams[i] += 1;
+      this.teams[teamidx].score += 1;
 
       //3.다음 턴으로 넘기기
-      this.currentTurn++;
-      if (this.currentTurn == this.teamnumber) this.currentTurn = 0;
-      //3-1.user의 순서면 그림 그리기 허용
-      this.turnToDraw =
-        this.teams[this.currentTurn].text == this.userinfo.team ? true : false;
-      //3-2.정해진 문제 수만큼 풀이가 끝났으면 종료
-      if (i == -1) {
-        //조건 변경 필요
+      this.currentTeam++;
+      this.currentUser = 0;
+      this.clearAll();
+      //3-1.정해진 문제 수만큼 풀이가 끝났으면 종료
+      if (this.currentTeam >= this.teamnumber) {
+        // 현재) 모든 팀이 1번씩 그리면 끝남
         this.$store.state.userinfo = this.userinfo;
         this.$store.state.teams = this.teams;
-
+        console.log("catchmind finished");
         //페이지 이동
+        alert("게임이 끝났습니다!\n 대기실로 이동해주세요");
+        return;
       }
 
       //4.새 문제 받아오기
       if (this.isAdmin) {
+        console.log("isAdmin");
+        this.socket.emit(
+          "chat",
+          { username: "System" },
+          "새로운 문제를 시작합니다."
+        );
         this.getAnswer();
       }
 
@@ -340,23 +337,7 @@ export default {
 </script>
 
 <style scoped>
-.grid-wrapper {
-  display: grid;
-  grid-template-columns: 30% 40% 30%;
-  grid-template-areas:
-    "left canvas right"
-    "left temp right";
-}
-.rtc {
-}
-.rtc#left-rtc {
-  grid-area: left;
-}
-.rtc#right-rtc {
-  grid-area: right;
-}
 .canvas-wrapper {
-  grid-area: canvas;
 }
 .answer {
   position: absolute;
@@ -367,9 +348,6 @@ export default {
   border: 3px solid black;
   height: 100%;
   width: 100%;
-}
-.game-support {
-  grid-area: temp;
 }
 .game-support > div {
   margin: 1px;

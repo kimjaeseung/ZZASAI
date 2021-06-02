@@ -2,32 +2,30 @@
   <div id="test">
     <b-row>
       <b-col>
-        <br>
+        <br />
         <!-- 내 비디오 -->
         <!-- <user-video class="my-video" :stream-manager="publisher" /> -->
         <!-- 전체 비디오 -->
-        <div v-for="(sub,index) in subscribers" :key="sub">
-        <div v-if="index % 2 == 0">
-          {{index}}
-        <user-video 
-          class="user-videos"
-          :key="sub.stream.connection.connectionId"
-          :stream-manager="sub"
-        />
-        </div>
+        <div v-for="(sub, index) in subscribers" :key="sub">
+          <div v-if="index % 2 == 0">
+            <user-video
+              class="user-videos"
+              :key="sub.stream.connection.connectionId"
+              :stream-manager="sub"
+            />
+          </div>
         </div>
       </b-col>
       <b-col>
-        <br>
-        <div v-for="(sub,index) in subscribers" :key="sub">
-        <div v-if="index % 2 == 1">
-          {{index}}
-        <user-video 
-          class="user-videos"
-          :key="sub.stream.connection.connectionId"
-          :stream-manager="sub"
-        />
-        </div>
+        <br />
+        <div v-for="(sub, index) in subscribers" :key="sub">
+          <div v-if="index % 2 == 1">
+            <user-video
+              class="user-videos"
+              :key="sub.stream.connection.connectionId"
+              :stream-manager="sub"
+            />
+          </div>
         </div>
       </b-col>
     </b-row>
@@ -41,8 +39,8 @@ import UserVideo from "@/components/UserVideo";
 
 axios.defaults.headers.post["Content-Type"] = "application/json";
 
-const OPENVIDU_SERVER_URL = "https://" + location.hostname + ":4443";
-//const OPENVIDU_SERVER_URL = "https://k4a205.p.ssafy.io";
+// const OPENVIDU_SERVER_URL = "https://" + location.hostname + ":4443";
+const OPENVIDU_SERVER_URL = "https://k4a205.p.ssafy.io:4443";
 const OPENVIDU_SERVER_SECRET = "MY_SECRET";
 
 export default {
@@ -65,18 +63,18 @@ export default {
     };
   },
   methods: {
-    push_userlist: function(name){
-      this.$store.commit('PUSH_USERLIST', name)
+    push_userlist: function(name) {
+      this.$store.commit("PUSH_USERLIST", name);
     },
     // openvidu 서버 토큰 받기
     getToken: function(sessionId) {
-      console.log("토큰 받기 시작");
+      // console.log("토큰 받기 시작");
       return this.createSession(sessionId).then((sessionId) =>
         this.createToken(sessionId)
       );
     },
     createSession: function(sessionId) {
-      console.log("세션 생성");
+      // console.log("세션 생성");
       return new Promise((resolve, reject) => {
         axios
           .post(
@@ -92,7 +90,7 @@ export default {
             }
           )
           .then((response) => {
-            console.log(response.data);
+            // console.log(response.data);
             return response.data;
           })
           .then((data) => resolve(data.id))
@@ -161,25 +159,22 @@ export default {
     this.$store.state.userlist.push(this.$store.state.userinfo.username);
     // openvidu 객체 생성
     this.OV = new OpenVidu();
-    
+
     // 세션 초기화
     this.session = this.OV.initSession();
 
     this.session.on("streamCreated", ({ stream }) => {
       let subscriber = this.session.subscribe(stream);
       this.subscribers.push(subscriber);
-      var temp = []
-      var bootemp = []
+      var temp = [];
+      var bootemp = [];
       for (var sub of this.subscribers) {
         var data = JSON.parse(sub.stream.connection.data);
         temp.push(data.clientData);
         bootemp.push(false);
-        console.log("여기에요");
       }
       this.$store.state.userlist = temp;
       this.$store.state.userlist_boolean = bootemp;
-      console.log(this.$store.state.userlist)
-      console.log(this.$store.state.userlist_boolean)
     });
 
     this.session.on("streamDestroyed", ({ stream }) => {
@@ -190,8 +185,8 @@ export default {
     });
 
     this.session.on("signal:my-chat", (event) => {
-      console.log("메시지 :", event.data);
-      console.log("작성자 :", event.from);
+      // console.log("메시지 :", event.data);
+      // console.log("작성자 :", event.from);
 
       let msg = { author: "", content: "" };
       msg.author = event.from.data.split('":"')[1].slice(0, -2);
@@ -223,8 +218,8 @@ export default {
           this.session.publish(this.publisher);
           this.$store.state.userlist.push(this.$store.state.userinfo.username);
           this.$store.state.userlist_boolean.push(false);
-          console.log("끝");
-          })
+          // console.log("끝");
+        })
         .catch((err) => console.log("세션 커넥트 에러", err.code, err.message));
     });
   },

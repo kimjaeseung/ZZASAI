@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ssafy.icebreaking.model.RoomDto;
 import com.ssafy.icebreaking.model.service.RoomService;
 
-@CrossOrigin(origins= {"*"})
+@CrossOrigin(origins = { "*" })
 // @CrossOrigin(origins= {"http://zzasai.com"})
 @RestController
 @RequestMapping("/api/room")
@@ -27,14 +27,17 @@ public class RoomController {
 	RoomService roomservice;
 
 	////////// 방 정보 DB에 저장//////////
-	@RequestMapping(value = "/create", method=RequestMethod.POST)
+	@PostMapping("/create")
 	public String createRoom(@RequestBody RoomDto roomdto) throws Exception {
 		String result = "";
+		System.out.println("들어옴 "+ roomdto.getRoomCode());
 		try {
 			roomservice.insertRoominfo(roomdto);
 			result = SUCCESS;
+			System.out.println("성공");
 		} catch (Exception e) {
 			result = FAIL;
+			System.out.println("실패!");
 		}
 
 		return result;
@@ -49,5 +52,12 @@ public class RoomController {
 		roomdto = roomservice.returnRoominfo(roomcode);
 
 		return roomdto;
+	}
+
+	////////// 유효한 방 코드인지 체크//////////
+	@GetMapping("/codecheck")
+	public boolean roomCheck(@RequestParam("roomcode") String roomcode, HttpServletRequest request) throws Exception {
+		boolean result = roomservice.roomcodeCheck(roomcode);
+		return result;
 	}
 }

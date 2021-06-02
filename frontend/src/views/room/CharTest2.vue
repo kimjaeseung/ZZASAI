@@ -1,49 +1,53 @@
 <template>
-  <!-- 캐릭터 테스트 -->
-  <div>
-    <h1> 캐릭터(성향) 테스트 </h1>
-    <div class="py-3 my-2"></div>
-    <h1>총 검사 시간은 1분 내외입니다</h1>
-    <h1>혹 질문이 마음에 들지 않더라도 정직하게 답변하십시오</h1>
-    <br><br>
-    <h1>1/4</h1>
-    <h1>Q. 데이트가 없는 주말에 나는</h1>
-    <br>
-    <b-button type="button" variant="primary" class="btn btn-lg" v-on:click="myes()">단톡에 연락해서 친구들과 약속을 잡는다</b-button>
-    <b-button type="button" variant="danger" class="btn btn-lg" v-on:click="mno()">침대랑 하루 종일 물아일체가 된다</b-button>
+  <div id="char-test-2">
+    <h1 id="char-test-title">캐릭터(성향) 테스트</h1>
+    <div class="py-5 my-2" style="color:white">
+      총 검사 시간은 1분 내외입니다 <br />
+      혹 질문이 마음에 들지 않더라도 정직하게 답변하십시오
+    </div>
+    <div style="color: black;">
+      <h1 class="mb-5">Q1. 데이트가 없는 주말에 나는</h1>
+      <button class="char-select-btn" @click="myes()">
+        단톡에 연락해서 친구들과 약속을 잡는다
+      </button>
+      <button class="char-select-btn" @click="mno()">
+        침대랑 하루 종일 물아일체가 된다
+      </button>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
   data() {
-      return {  
-        socket: this.$store.state.socket,
-      }
+    return {
+      socket: this.$store.state.socket,
+    };
   },
   mounted() {
     this.socket.on("userboolean", (userboolean) => {
       this.$store.state.userlist_boolean = userboolean.userlist_boolean;
-      console.log("changed user list: ", this.$store.state.userlist_boolean);
     });
   },
   methods: {
     next() {
-      this.$router.push('/char-test3');
+      // this.$router.push({name: 'CharTest3', params: {roomcode: this.$store.state.roomcode}})
+      this.$emit("next");
     },
-    myes: function () {
+    myes: function() {
       this.$store.state.m = 1;
-      this.$router.push('/char-test3');
+      this.next();
     },
-    mno: function () {
+    mno: function() {
       this.$store.state.m = 2;
-      this.$router.push('/char-test3');
+      this.next();
     },
-  }
-}
-
+  },
+};
 </script>
 
 <style>
-
+#char-test-2 {
+  color: black;
+}
 </style>

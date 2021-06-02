@@ -1,27 +1,26 @@
 <template>
   <!-- 캐릭터 테스트 -->
   <div>
-    <h1>성격분류가 완료되었습니다.</h1>
-    <div class="py-3 my-1"></div>
-    <div class="row">
+    <h2 id="char-test-title">성격분류가 완료되었습니다.</h2>
+    <div class="row py-5">
       <div class="col-4 offset-md-2">
-        <img src="~@/assets/mbti/dolphin.png" alt="mbti image" />
+        <img style="width: 80%;" src="~@/assets/mbti/dolphin.png" alt="mbti image" />
       </div>
-      <div class="col-5">
-        <h2><br />돌고래는 창의적인 방법으로 물고기를 잡는다.</h2>
+      <div class="col-5 my-5">
+        <h3><br />돌고래는 창의적인 방법으로 물고기를 잡는다.</h3>
         <br />
-        <h2>
+        <h3>
           먹잇감이 눈치 채지 못하도록 위장하기 위해 해초로 코를 가리기도 하는
           것.
-        </h2>
+        </h3>
         <br />
-        <h2>
+        <h3>
           바다 위로 텀블링을 하며 사람들의 관심을 유발하고 돌고래 소리를 내며
           장난을 치는 돌고래야말로 항상 업 되어 있는 ENFP에게 잘 매치되는 동물이
           아닐는지?
-        </h2>
+        </h3>
         <br />
-        <button type="button" class="btn btn-dark btn-lg" v-on:click="sendInfo">
+        <button type="button" class="char-select-btn" v-on:click="sendInfo">
           Next
         </button>
       </div>
@@ -49,7 +48,7 @@ export default {
     next() {
       this.updateArray(this.$store.state.userlist, this.$store.state.userinfo.username)
       console.log(this.$store.state.userlist_boolean);
-      this.$router.push("/loading");
+      this.$router.push({name: 'Loading', params: {roomcode: this.$store.state.roomcode}})
     },
     updateArray(myArray, oldValue){
         const index = myArray.indexOf(oldValue);
@@ -61,7 +60,7 @@ export default {
       this.$store.state.socket.emit("mbti2", this.$store.state.roomcode, this.$store.state.userinfo.username, 
       this.$store.state.userlist,
       this.$store.state.m*1000+this.$store.state.b*100+this.$store.state.t*10+this.$store.state.i);
-      this.$router.push('/loading'); 
+      this.$router.push({name: 'Loading', params: {roomcode: this.$store.state.roomcode}})
     },
   },
 };

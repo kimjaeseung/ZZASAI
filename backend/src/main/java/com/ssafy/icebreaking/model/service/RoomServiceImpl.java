@@ -28,4 +28,18 @@ public class RoomServiceImpl implements RoomService {
 		return roomdto;
 	}
 
+	// roomcode 유효성 검사
+	@Override
+	public boolean roomcodeCheck(String roomcode) {
+		int count = 0;
+
+		count = sqlSession.getMapper(RoomMapper.class).roomcodeCheck(roomcode);
+
+		if (count == 0) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
 }

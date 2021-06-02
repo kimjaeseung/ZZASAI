@@ -1,10 +1,20 @@
 // server.js
 
+// https pem키 연결
+var fs = require("fs");
+
+var options = {
+  key: fs.readFileSync("/etc/letsencrypt/live/k4a205.p.ssafy.io/privkey.pem"),
+  cert: fs.readFileSync("/etc/letsencrypt/live/k4a205.p.ssafy.io/cert.pem"),
+  ca: fs.readFileSync("/etc/letsencrypt/live/k4a205.p.ssafy.io/chain.pem"),
+};
+
 var express = require("express");
 const { emit } = require("process");
 var app = express();
-var http = require("http").Server(app); //1
-var io = require("socket.io")(http, { cors: { origin: "*" } }); //1. **allow all cors**
+// var https = require("http").Server(app); //1
+var https = require("https").Server(options, app); //1
+var io = require("socket.io")(https, { cors: { origin: "*" } }); //1. **allow all cors**
 
 const User = class {
   constructor(id, name, code, isAdmin) {
@@ -26,7 +36,12 @@ const Userlist_boolean = class {
     this.userlist_boolean = userlist_boolean;
   }
   str() {
-    console.log(this.roomcode, this.username, this.userlist, this.userlist_boolean);
+    console.log(
+      this.roomcode,
+      this.username,
+      this.userlist,
+      this.userlist_boolean
+    );
   }
 };
 
@@ -48,6 +63,7 @@ const Room = class {
 var rooms = [];
 
 io.on("connection", function (socket) {
+  // nsp.on("connection", function (socket) {
   //3. interact with clients
   //3-1. client connected
   console.log("user connected: ", socket.id);
@@ -124,14 +140,56 @@ io.on("connection", function (socket) {
     io.to(user.code).emit("chat", name, msg);
   });
 
+  /* program syncing */
+  socket.on("prohall", () => {
+    if (user == null) return;
+    console.log("program: hall");
+    io.to(user.code).emit("prohall");
+  });
+  socket.on("prochartest", () => {
+    if (user == null) return;
+    console.log("program: chartest");
+    io.to(user.code).emit("prochartest");
+  });
+  socket.on("procatchmind", () => {
+    if (user == null) return;
+    console.log("program: catchmind");
+    io.to(user.code).emit("procatchmind");
+  });
+  socket.on("procardplay", () => {
+    if (user == null) return;
+    console.log("program: cardplay");
+    io.to(user.code).emit("procardplay");
+  });
+  socket.on("profinal", () => {
+    if (user == null) return;
+    io.to(user.code).emit("profinal");
+  });
+
+  /* game syncing */
+  socket.on("start game", (team, time) => {
+    //emit - timer start(total, first player)
+    io.to(user.code).emit("start game", time * team.currentpeople);
+
+    //emit - timer per player. using for loop
+    for (var u of team.joinlist) {
+      io.to(user.code).emit("timer", u, time); //userinfo, time per person
+    }
+    //emit - timer end(total)
+    io.to(user.code).emit("end game");
+  });
+
   /* checking answer */
   socket.on("answer", function (answer) {
     //방장이 정답을 back에서 받아와서 서버에 알림
     if (user == null) return;
+    console.log(answer);
     //back에서 받아온 정답을 모두에게 알림
     io.to(user.code).emit("answer", answer);
+    io.to(user.code).emit("new game");
   });
   socket.on("correct answer", function (userinfo) {
+    console.log("정답: ", userinfo);
     io.to(user.code).emit("correct answer", userinfo);
   });
 
@@ -151,50 +209,74 @@ io.on("connection", function (socket) {
   userlist_boolean = new Array();
   socket.on("mbti", function (roomcode, username, userlist, mbtivalue) {
     const index = userlist.indexOf(username);
-        if (index !== -1) {
-          console.log(userlist);
-          console.log(username);
-          console.log(mbtivalue);
-          if(userlist_boolean.length < userlist.length){
-            for(var i=0; i<userlist.length; i++) {
-              userlist_boolean.push(false);
-            }
-          }
-          userlist_boolean[index] = mbtivalue;
-          console.log(userlist_boolean);
+    if (index !== -1) {
+      console.log(userlist);
+      console.log(username);
+      console.log(mbtivalue);
+      if (userlist_boolean.length < userlist.length) {
+        for (var i = 0; i < userlist.length; i++) {
+          userlist_boolean.push(false);
         }
-    userboolean = new Userlist_boolean(roomcode, username, userlist, userlist_boolean);
+      }
+      userlist_boolean[index] = mbtivalue;
+      console.log(userlist_boolean);
+    }
+    userboolean = new Userlist_boolean(
+      roomcode,
+      username,
+      userlist,
+      userlist_boolean
+    );
     io.emit("userboolean", userboolean);
   });
   socket.on("mbti2", function (roomcode, username, userlist, mbtivalue) {
     const index = userlist.indexOf(username);
-        if (index !== -1) {
-          console.log(roomcode);
-          console.log(userlist);
-          console.log(username);
-          console.log(mbtivalue);
-          userboolean.userlist_boolean[index] = mbtivalue;
-          console.log(userlist_boolean);
-        }
+    if (index !== -1) {
+      console.log(roomcode);
+      console.log(userlist);
+      console.log(username);
+      console.log(mbtivalue);
+      userboolean.userlist_boolean[index] = mbtivalue;
+      console.log(userlist_boolean);
+    }
     io.emit("userboolean", userboolean);
-    if(!userboolean.userlist_boolean.includes(false))
-    {
+    if (!userboolean.userlist_boolean.includes(false)) {
       console.log("false없음 !! 모두 mbti 완료 !");
       io.emit("mbtifinish", userboolean);
     }
   });
-  
-  /*card function*/
-  socket.on("cardselect",function(cardno,target_id, targetname){
-    io.emit("cardselected",cardno,target_id, targetname);
-  }),
 
-  socket.on("firstinit",function(cardlist,backgroundlist){
-    io.emit("setinit",cardlist,backgroundlist);
+  // select team
+  socket.on("select team", function (teams) {
+    if (user == null) return;
+    io.to(user.code).emit("select team", teams);
   });
+  socket.on("move page to select team", function (teams, teamNumber, timer) {
+    console.log("check");
+    if (user == null) return;
+    io.to(user.code).emit("move page", teams, teamNumber, timer);
+  });
+
+  // move main page
+  socket.on("move page to room", function () {
+    console.log("move page");
+    if (user == null) return;
+    io.to(user.code).emit("move room page");
+  });
+
+  /*card function*/
+  socket.on("cardselect", function (cardno) {
+    io.emit("cardselected", cardno);
+  }),
+    socket.on("firstinit", function (cardlist, backgroundlist) {
+      io.emit("setinit", cardlist, backgroundlist);
+    }),
+    socket.on("cardflip", function () {
+      io.emit("cardflipstart");
+    });
 });
 
 //4
-http.listen(3000, function () {
+https.listen(3000, function () {
   console.log("server on!");
 });
